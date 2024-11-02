@@ -1,5 +1,7 @@
 FROM golang:1.23-alpine
 
+# Install required tools
+RUN apk add --no-cache git
 # Install air for live reloading
 RUN go install github.com/air-verse/air@latest
 
@@ -8,4 +10,7 @@ WORKDIR /app
 # Copy air configuration
 COPY .air.toml .
 
-CMD ["air"]
+# Create tmp directory for air
+RUN mkdir -p tmp
+
+CMD ["air", "-c", ".air.toml"]

@@ -26,14 +26,18 @@ func main() {
 	// initialize mongodb connection
 	configs.ConnectDB()
 
+	app.Get("/health", healthCheck)
+	
 	// setup routes
 	api := app.Group("/api")
+	
 
 	// auth routes with validation
 	auth := api.Group("/auth")
 	auth.Post("/signup", middleware.ValidateUserInput(),handlers.SignUp)
 	auth.Post("/signin", middleware.ValidateUserInput(),handlers.SignIn)
 	auth.Post("/refresh", handlers.RefreshToken)
+	
 
 	// Password reset routes
 	auth.Post("/forgot-password", handlers.RequestPasswordReset)
@@ -51,4 +55,11 @@ func main() {
 
 	log.Printf("Server starting on port %s", port)
 	log.Fatal(app.Listen(":" + port))
+}
+
+func healthCheck(c *fiber.Ctx) error {
+    return c.JSON(fiber.Map{
+        "status": "ok",
+        "message": "Service is healthy",
+    })
 }

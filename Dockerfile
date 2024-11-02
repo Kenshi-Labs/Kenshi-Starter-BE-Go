@@ -1,22 +1,28 @@
-# FROM golang:1.21-alpine
-# FROM golang:1.23
-FROM golang:1.23-alpine
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
 # Copy go mod files
-COPY go.mod ./
+COPY go.mod go.sum ./
 
-# Initialize go.mod and download dependencies
-RUN go mod download && \
-    go mod tidy
+# Download dependencies
+RUN go mod download
 
-# Copy the source code
+# Copy source code
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+# Use a minimal alpine image for the final container
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copy the binary from builder
+COPY --from=builder /app/main .
 
 EXPOSE 3000
 
-CMD ["./app"]
+# Changed from ./app to ./main to match the build output
+CMD ["./main"]
